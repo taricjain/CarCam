@@ -1,20 +1,20 @@
 import { StyleSheet } from 'react-native';
-import Colors from '../constants/Colors';
 
 export const styles = StyleSheet.create({
     content: {
         flex: 1,
-        margin: 20,
-        backgroundColor: 'transparent',
-        flexDirection: 'row',
+        margin: 1,
+        flexDirection: 'column',
     },
     button: {
-        flex: 0.3,
-        alignSelf: 'flex-end',
+        flex: 0.4,
         alignItems: 'center',
-        backgroundColor: Colors.blue,
+        backgroundColor: 'transparent',
+        borderWidth: 1,
+        borderColor: 'white',
         borderRadius: 50,
         padding: 10,
+        margin: 5,
     },
     text: {
         fontSize: 18,
@@ -23,8 +23,15 @@ export const styles = StyleSheet.create({
     },
     cameraView: {
         flex: 1,
-        flexDirection: 'column',
         margin: 10,
         backgroundColor: 'transparent',
+    },
+    row: {
+        flexDirection: 'row',
+        backgroundColor: 'transparent',
+        justifyContent: 'space-evenly',
+        alignItems: 'center',
+        position: 'absolute',
+        bottom: 0,
     },
 });

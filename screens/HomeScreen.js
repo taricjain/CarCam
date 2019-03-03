@@ -1,17 +1,19 @@
 import React from 'react';
-import { Text, TouchableOpacity, View, Alert, FileSystem, Vibration, CameraRoll } from 'react-native';
+import { Text, TouchableOpacity, View, 
+        Alert, Vibration, CameraRoll } from 'react-native';
+import TimerMixin from 'react-timer-mixin';
 import { Camera, Permissions } from 'expo';
 import { styles } from '../styles/HomeScreenStyles';
 
 export default class HomeScreen extends React.Component {
-    static navigationOptions = {
-        title: 'Welcome',
-    };
-
     constructor(props){
         super(props)
         this.startRecording = this.startRecording.bind(this)
     }
+
+    static navigationOptions = {
+        title: 'Welcome',
+    };
 
     state = {
         hasCameraPermissions: null,
@@ -22,7 +24,6 @@ export default class HomeScreen extends React.Component {
         ratio: '16:9',
         type: Camera.Constants.Type.back,
         isRecording: false,
-
     };
 
     render() {
@@ -33,40 +34,40 @@ export default class HomeScreen extends React.Component {
             return <Text>Permissions were denied :(</Text>;
         } else {
             return (
-                <View style={{flex: 1}}>
-                    <View style={{flex: 1}}>
-                        <Camera 
-                            ref={ref => {this.camera = ref;}} 
-                            style={styles.cameraView}
-                            type={this.state.type}
-                        />
-                    </View>
-                    <View style={styles.content}>
-                        <TouchableOpacity style={styles.button}
-                            onPress={this.toggleCameraView}>
-                            <Text style={styles.text}>Flip View</Text>
-                        </TouchableOpacity>
+                <View style={styles.content}>
+                    <Camera 
+                        ref={ref => {this.camera = ref;}} 
+                        style={styles.cameraView}
+                        ratio={this.state.ratio}
+                        flash={this.state.flash}
+                        autoFocus={this.state.autoFocus}
+                        zoom={this.state.zoom}
+                        type={this.state.type}>
+                        <View style={styles.row}>
+                            <TouchableOpacity style={styles.button}
+                                onPress={this.toggleCameraView}>
+                                <Text style={styles.text}>Flip View</Text>
+                            </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.button}
-                            onPress={() => this.startRecording()}>
-                            <Text style={styles.text}>Record</Text>
-                        </TouchableOpacity>
+                            <TouchableOpacity style={styles.button}
+                                onPress={() => this.startRecording()}>
+                                <Text style={styles.text}>Record</Text>
+                            </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.button}
-                            onPress={() => {
-                                this.stopRecording();
-                                Alert.alert(
-                                    'Alert!',
-                                    'Recording stopped.',
-                                    [
-                                        {text: 'Okay!' },
-                                    ],
-                                    {cancelable: false},
-                                );
-                                }}>
-                            <Text style={styles.text}>Stop</Text>
-                        </TouchableOpacity>
-                    </View>
+                            <TouchableOpacity style={styles.button}
+                                onPress={() => {
+                                    this.stopRecording();
+                                    Alert.alert(
+                                        'Alert!',
+                                        'Recording stopped.',
+                                        [{text: 'Okay!' }],
+                                        {cancelable: false},
+                                    );
+                                    }}>
+                                <Text style={styles.text}>Stop</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </Camera>
                 </View>
             );
         }
@@ -78,16 +79,16 @@ export default class HomeScreen extends React.Component {
             maxDuration: 30,
             mute: true,
         }
+        Vibration.vibrate();
         this.camera.recordAsync(recordingConfig).then(async data => {
             Vibration.vibrate();
-            let saveResult = await CameraRoll.saveToCameraRoll(data.uri);
-            // this.state.videos.push(
-            // {
-            //     uri: data.uri,
-            //     fs: `${FileSystem.documentDirectory}videos/Video_${Date.now()}.mov`,
-            //     rollUri: saveResult
-            // })
+            this.pushAfterFifteen(data);
+            //await CameraRoll.saveToCameraRoll(data.uri);
         })
+    }
+
+    pushAfterFifteen(data) {
+        CameraRoll.saveToCameraRoll(data.uri);
     }
 
     stopRecording() {
