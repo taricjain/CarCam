@@ -3,8 +3,37 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
     content: {
         flex: 1,
-        margin: 1,
-        flexDirection: 'column',
+        backgroundColor: '#000',
+        display: 'flex',
+    },
+    cameraView: {
+        flex: 1,
+        backgroundColor: 'transparent',
+    },
+    recordRow: {
+        justifyContent: 'flex-end',
+        alignSelf: 'center',
+        flex: 1,
+    },
+    recordButtonRing: {
+        borderColor:'#fff',
+        borderWidth: 6,
+        borderRadius: 1000,
+        width: 90,
+        height: 90,
+        marginBottom: 15,
+    },
+    recordButtonInner: {
+        backgroundColor: '#9e1919',
+        flex: 1,
+        borderRadius: 1000,
+        margin: 5,
+    },
+    recordButtonInnerPressed: {
+        backgroundColor: '#9e1919',
+        flex: 1,
+        borderRadius: 10,
+        margin: 12,
     },
     button: {
         flex: 0.4,
@@ -21,17 +50,16 @@ export const styles = StyleSheet.create({
         color: 'white',
         fontWeight: 'bold',
     },
-    cameraView: {
-        flex: 1,
-        margin: 10,
-        backgroundColor: 'transparent',
-    },
     row: {
         flexDirection: 'row',
         backgroundColor: 'transparent',
-        justifyContent: 'space-evenly',
-        alignItems: 'center',
-        position: 'absolute',
-        bottom: 0,
+        paddingLeft: 15,
+        paddingTop: 10,
+    },
+    permissionsText: {
+        color: '#fbfbfb',
+        fontSize: 24,
+        textAlign: 'center',
+        marginTop: 100,
     },
 });

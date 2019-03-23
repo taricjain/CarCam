@@ -1,18 +1,23 @@
 import React from 'react';
-import { Text, TouchableOpacity, View, 
-        Alert, Vibration, CameraRoll } from 'react-native';
+import { 
+    Text, TouchableOpacity, View, StatusBar,
+    Alert, Vibration, CameraRoll, SafeAreaView,
+    TouchableHighlight, Platform,
+} from 'react-native';
+import { Camera, Permissions, Icon } from 'expo';
 import TimerMixin from 'react-timer-mixin';
-import { Camera, Permissions } from 'expo';
 import { styles } from '../styles/HomeScreenStyles';
+import Colors from '../constants/Colors';
 
 export default class HomeScreen extends React.Component {
-    constructor(props){
-        super(props)
-        this.startRecording = this.startRecording.bind(this)
+    constructor(props) {
+        super(props);
     }
 
     static navigationOptions = {
-        title: 'Welcome',
+        headerStyle: {
+            display: 'none',
+          },
     };
 
     state = {
@@ -24,17 +29,24 @@ export default class HomeScreen extends React.Component {
         ratio: '16:9',
         type: Camera.Constants.Type.back,
         isRecording: false,
+        pressed: false,
     };
 
     render() {
         const { hasCameraPermissions } = this.state;
         if (hasCameraPermissions === null) {
-            return <View />;
+            return <SafeAreaView style={styles.content}/>;
         } else if (hasCameraPermissions === false) {
-            return <Text>Permissions were denied :(</Text>;
+            return (
+                <SafeAreaView style={styles.content}>
+                    <StatusBar translucent={true} barStyle="light-content" />
+                    <Text style={styles.permissionsText}>Please enable permissions to access the camera.</Text>
+                </SafeAreaView>
+            );
         } else {
             return (
-                <View style={styles.content}>
+                <SafeAreaView style={styles.content}>
+                    <StatusBar translucent={true} barStyle="light-content" />
                     <Camera 
                         ref={ref => {this.camera = ref;}} 
                         style={styles.cameraView}
@@ -44,55 +56,61 @@ export default class HomeScreen extends React.Component {
                         zoom={this.state.zoom}
                         type={this.state.type}>
                         <View style={styles.row}>
-                            <TouchableOpacity style={styles.button}
+                            <TouchableOpacity
                                 onPress={this.toggleCameraView}>
-                                <Text style={styles.text}>Flip View</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity style={styles.button}
-                                onPress={() => this.startRecording()}>
-                                <Text style={styles.text}>Record</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity style={styles.button}
-                                onPress={() => {
-                                    this.stopRecording();
-                                    Alert.alert(
-                                        'Alert!',
-                                        'Recording stopped.',
-                                        [{text: 'Okay!' }],
-                                        {cancelable: false},
-                                    );
-                                    }}>
-                                <Text style={styles.text}>Stop</Text>
+                                <Icon.Ionicons
+                                    name={
+                                        Platform.OS === 'ios'
+                                          ? 'ios-reverse-camera'
+                                          : 'md-reverse-camera'
+                                      }
+                                    size={45}
+                                    color={Colors.noticeText}
+                                ></Icon.Ionicons>
                             </TouchableOpacity>
                         </View>
+                        <View style={styles.recordRow}>
+                            <TouchableHighlight 
+                                activeOpacity={1}
+                                style={styles.recordButtonRing}
+                                onPress={() => this.toggleRecording()}>
+                                <View style={this.state.pressed
+                                    ? styles.recordButtonInnerPressed
+                                    : styles.recordButtonInner}></View>
+                            </TouchableHighlight>
+                        </View>
                     </Camera>
-                </View>
+                </SafeAreaView>
             );
         }
     }
 
-    startRecording() {
-        const recordingConfig = {
-            quality: Camera.Constants.VideoQuality['480p'],
-            maxDuration: 30,
-            mute: true,
-        }
-        Vibration.vibrate();
-        this.camera.recordAsync(recordingConfig).then(async data => {
+    toggleRecording() {
+        if (this.state.pressed) {
+            this.camera.stopRecording();
+            Alert.alert(
+                'Stopped Recording',
+                'Video has been saved to your camera roll.',
+                {cancelable: false},
+            );
+        } else {
+            const recordingConfig = {
+                quality: Camera.Constants.VideoQuality['480p'],
+                maxDuration: 30,
+                mute: true,
+            };
             Vibration.vibrate();
-            this.pushAfterFifteen(data);
-            //await CameraRoll.saveToCameraRoll(data.uri);
-        })
+            this.camera.recordAsync(recordingConfig).then(async data => {
+                Vibration.vibrate();
+                this.pushAfterFifteen(data);
+                //await CameraRoll.saveToCameraRoll(data.uri);
+            });
+        }
+        this.setState({ pressed: !this.state.pressed });
     }
 
     pushAfterFifteen(data) {
         CameraRoll.saveToCameraRoll(data.uri);
-    }
-
-    stopRecording() {
-        this.camera.stopRecording();
     }
  
     toggleCameraView = () => {
@@ -104,7 +122,7 @@ export default class HomeScreen extends React.Component {
     }
 
     async componentDidMount() {
-        const { status } = await Permissions.askAsync(Permissions.CAMERA, Permissions.AUDIO_RECORDING, Permissions.CAMERA_ROLL);
+        const { status } = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL);
         this.setState( { hasCameraPermissions: status === 'granted' });
     }
 
