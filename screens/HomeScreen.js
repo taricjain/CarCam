@@ -1,14 +1,15 @@
 import React from 'react';
 import { Text, View, Alert, TouchableHighlight, AsyncStorage } from 'react-native';
-import { Camera, Permissions } from 'expo';
-import { BackgroundFetch, TaskManager } from 'expo';
+import { Camera, Permissions, BackgroundFetch, TaskManager, Constants, Accelerometer, Gyroscope } from 'expo';
 
 
 import { styles } from '../styles/HomeScreenStyles';
-import SettingsScreen from './SettingsScreen';
 
 export default class HomeScreen extends React.Component {
-    constructor(props) { super(props); }
+    constructor(props) { 
+        super(props); 
+    }
+
     static navigationOptions = { headerStyle: { display: 'none' } };
 
     state = {
@@ -110,12 +111,6 @@ export default class HomeScreen extends React.Component {
     };
 
     async componentDidMount() {
-        let { status } = await Permissions.askAsync(
-            Permissions.CAMERA, 
-            Permissions.CAMERA_ROLL,
-            Permissions.AUDIO_RECORDING);
-        this.setState( { hasCameraPermissions: status === 'granted' });
-
         let { navigation } = this.props;
         navigation.addListener('willFocus', () =>
             this.setState({ focusedScreen: true })
@@ -123,5 +118,14 @@ export default class HomeScreen extends React.Component {
         navigation.addListener('willBlur', () =>
             this.setState({ focusedScreen: false }),
         );
+
+        let { status } = await Permissions.askAsync(
+            Permissions.CAMERA, 
+            Permissions.CAMERA_ROLL,
+            Permissions.AUDIO_RECORDING);
+        this.setState( { hasCameraPermissions: status === 'granted' } );
+
+        let count = await AsyncStorage.getAllKeys();
+        this.setState( { counter: count.length } );
     }
 }

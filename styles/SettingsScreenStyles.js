@@ -12,23 +12,37 @@ export const styles = StyleSheet.create({
         textAlign: 'center',
     },
     galleryContainer: { 
-        flex: 1
+        flex: 1,
     },
     galleryImageContainer: { 
         width: 75,
         height: 75, 
-        marginRight: 5 
+        marginRight: 5,
     },
     galleryImage: { 
         width: 75, 
-        height: 75 
+        height: 75,
     }, 
     default: {
         flex: 1, 
         alignItems: 'center', 
-        justifyContent: 'center'
+        justifyContent: 'center',
     }, 
     text: { 
-        fontSize: 20
+        fontSize: 20,
+    },
+    videoContainer: {
+        flex: 1,
+        marginTop: 50,
+    },
+    video: {
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
+    },
+    button: {
+        bottom: 0,
     }
 });

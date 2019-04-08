@@ -1,33 +1,85 @@
 import React from 'react';
-import { View, ScrollView, Image, Text, AsyncStorage } from 'react-native';
-import {Audio, Video} from 'expo';
+import { View, ScrollView, Text, AsyncStorage, TouchableHighlight, Modal, Button } from 'react-native';
+import { Video } from 'expo';
+
 import { styles } from '../styles/SettingsScreenStyles';
 
 export default class SettingsScreen extends React.Component {
     constructor(props) {
         super(props);
     }
+
     state = {
         videos: [],
         focusedScreen: false,
+        toPlay: "default",
+        modalVisible: false,
     };
+
+    setModalVisible(visible) {
+        this.setState({ modalVisible: visible });
+    }
+
     render() {
-        console.log("INFO: videos in gallery = " + this.state.videos.length);
         let focusedScreen = this.state;
-        if (this.state.videos.length > 0 && focusedScreen) {
+        console.log("INFO: videos in gallery = " + this.state.videos.length);
+        console.log("INFO: gallery in focus? " + focusedScreen.focusedScreen);
+
+        if (this.state.videos.length > 0 && focusedScreen.focusedScreen) {
             return (
                 <View style={{ flex: 1 }}>
                     {this.renderGallery()}
+                    {this.renderModal(this.state.toPlay)}
                 </View>
+                
             );
         }
-        else if (this.state.videos.length === 0 && focusedScreen) {
+        else if (this.state.videos.length === 0 && focusedScreen.focusedScreen) {
             return (
                 <View style={{flex: 1, alignItems: "center", justifyContent: "center"}}>
                     <Text style={{fontSize:20}}>Start Driving to Save Videos!</Text>
                 </View>
             );
         }
+        else {
+            return (
+                <View style={{flex: 1, alignItems: "center", justifyContent: "center"}}>
+                    <Text style={{fontSize:20}}>Start Driving to Save Videos!</Text>
+                </View>
+            );
+        }
+    }
+
+    renderModal(playThis) {
+        return (
+            <Modal
+                animationType="slide"
+                transparent={false}
+                visible={this.state.modalVisible}
+                onRequestClose={() => {
+                    console.log("INFO: Modal Closed.");
+                }}>
+                <View style={styles.videoContainer}>
+                    <Video
+                        source={{ uri: playThis }} 
+                        style={styles.video}
+                        rate={1.0}
+                        volume={0.0}
+                        isMuted={true}
+                        resizeMode="cover"
+                        shouldPlay
+                        isLooping
+                    />
+                    <Button
+                        title='Go Back'
+                        onPress={() => {
+                            this.setModalVisible(!this.state.modalVisible);
+                        }}
+                        style={styles.button}
+                    />
+                </View>
+            </Modal>
+        );
     }
 
     renderGallery() {
@@ -38,16 +90,22 @@ export default class SettingsScreen extends React.Component {
 
                 {this.state.videos.map(({ uri }) => (
                     <View style={styles.galleryImageContainer} key={uri}>
-                        <Video
-                            source={{ uri }} 
-                            style={styles.galleryImage}
-                            rate={1.0}
-                            volume={1.0}
-                            isMuted={false}
-                            resizeMode="cover"
-                            shouldPlay
-                            isLooping
-                            />
+                        <TouchableHighlight
+                            onPress={() => {
+                                this.setModalVisible(true);
+                                this.setState({ toPlay: uri });
+                            }}>
+                            <Video
+                                source={{ uri: uri }} 
+                                style={styles.galleryImage}
+                                rate={1.0}
+                                volume={0.0}
+                                isMuted={true}
+                                resizeMode="cover"
+                                shouldPlay
+                                isLooping
+                                />
+                        </TouchableHighlight>
                     </View>
                 ))}
             </ScrollView>
@@ -64,8 +122,7 @@ export default class SettingsScreen extends React.Component {
                     let key = store[i][0];
                     let value = store[i][1];
                     uris.push({key: counter, uri: value});
-                    // this.state.videos.push(value);
-                    console.log(value);
+                    // console.log(value);
                     counter++;
                 });
                 this.setState({videos:uris});
@@ -79,36 +136,8 @@ export default class SettingsScreen extends React.Component {
             });
         });
     }
-    async _fetchVideos() {
-        try {
-            AsyncStorage.getAllKeys((err, keys) => {
-                let uris = [];
-                let counter = 0;
-                AsyncStorage.multiGet(keys, (err, stores) => {
-                    stores.map((result, i, store) => {
-                    let key = store[i][0];
-                    let value = store[i][1];
-                    uris.push({key: counter, uri: value});
-                    // this.state.videos.push(value);
-                    counter++;
-                });
-                this.setState({videos:uris});
-                })
-                .catch(() => {
-                    console.log("ERROR: couldn't get values");
-                }); 
-            })
-            .catch(() => {
-                console.log("ERROR: couldn't' get keys");
-            });
-            console.log('INFO: now we have ' + this.state.videos.length + ' videos!');
-        } catch (error) {
-            console.log("ERROR: couldn't retrieve anything");
-        }
-    };
 
     async componentDidMount() {
-        // await this._fetchVideos();
         this._fetchVideosAsync()
             .then((resp) => {
                 console.log(resp);
@@ -121,5 +150,4 @@ export default class SettingsScreen extends React.Component {
             this.setState({ focusedScreen: false }),
         );
     }
-    
 }
