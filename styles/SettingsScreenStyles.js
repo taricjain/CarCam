@@ -36,16 +36,30 @@ export const styles = StyleSheet.create({
     },
     videoContainer: {
         flex: 1,
-        marginTop: 50,
     },
     video: {
         position: 'absolute',
-        top: 0,
+        top: 50,
         bottom: 0,
         left: 0,
         right: 0,
     },
     button: {
+        height: 50,
+        margin: 10,
+        marginTop:0,
+        backgroundColor: '#03244d',
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'absolute',
+        top:0,
+        left:0,
+        right: 0,
         bottom: 0,
+    },
+    buttonText: {
+        textAlign: 'center',
+        fontSize: 20,
+        color: '#fff',
     }
 });

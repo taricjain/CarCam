@@ -1,9 +1,8 @@
 import React from 'react';
 import { View, ScrollView, Text, 
     AsyncStorage, TouchableHighlight, 
-    Modal, Button, RefreshControl } from 'react-native';
+    Modal, RefreshControl } from 'react-native';
 import { Video } from 'expo';
-
 import { styles } from '../styles/SettingsScreenStyles';
 
 export default class SettingsScreen extends React.Component {
@@ -39,7 +38,6 @@ export default class SettingsScreen extends React.Component {
     render() {
         let focusedScreen = this.state;
         console.log("INFO: videos in gallery = " + this.state.videos.length);
-        console.log("INFO: gallery in focus? " + focusedScreen.focusedScreen);
 
         if (this.state.videos.length > 0 && focusedScreen.focusedScreen) {
             return (
@@ -84,12 +82,13 @@ export default class SettingsScreen extends React.Component {
                         shouldPlay
                         useNativeControls
                     />
-                    <Button
-                        title='Go Back'
+                    <TouchableHighlight
                         onPress={() => {
                             this.setModalVisible(!this.state.modalVisible);
                         }}
-                        style={styles.button}/>
+                        style={styles.button}>
+                            <Text style={styles.buttonText}>Go Back</Text>
+                    </TouchableHighlight>
                 </View>
             </Modal>
         );
@@ -119,8 +118,6 @@ export default class SettingsScreen extends React.Component {
                                 rate={1.0}
                                 isMuted={true}
                                 resizeMode="cover"
-                                shouldPlay
-                                isLooping
                                 />
                         </TouchableHighlight>
                     </View>

@@ -1,10 +1,7 @@
 import React from 'react';
-import { Text, View, Alert, 
+import { Text, View, Alert,
     TouchableHighlight, AsyncStorage } from 'react-native';
-import { Camera, Permissions,
-    BackgroundFetch, TaskManager,
-    Constants, Accelerometer, Gyroscope } from 'expo';
-
+import { Camera, Permissions } from 'expo';
 import { styles } from '../styles/HomeScreenStyles';
 
 export default class HomeScreen extends React.Component {
@@ -16,13 +13,13 @@ export default class HomeScreen extends React.Component {
 
     state = {
         hasCameraPermissions: null,
-        pressed: false,
         focusedScreen: false,
+        pressed: false,
         counter: 0,
         cameraConfig: {
+            type: Camera.Constants.Type.back,
             autoFocus: 'on',
             ratio: '16:9',
-            type: Camera.Constants.Type.back,
         },
         recordingConfig: {
             quality: Camera.Constants.VideoQuality['480p'],
@@ -43,7 +40,6 @@ export default class HomeScreen extends React.Component {
 
     renderCamera() {
         let { hasCameraPermissions, focusedScreen, cameraConfig } = this.state;
-        console.log('INFO: camera in focus? ' + focusedScreen);
 
         if (hasCameraPermissions === null || !focusedScreen) {
             return <View style={styles.content} />;

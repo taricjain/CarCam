@@ -62,4 +62,11 @@ export const styles = StyleSheet.create({
         textAlign: 'center',
         marginTop: 100,
     },
+    paragraph: {
+        margin: 10,
+        fontSize: 18,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        color: '#fff',
+    },
 });
