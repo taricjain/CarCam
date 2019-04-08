@@ -15,13 +15,16 @@ export const styles = StyleSheet.create({
         flex: 1,
     },
     galleryImageContainer: { 
-        width: 75,
-        height: 75, 
-        marginRight: 5,
+        flex: 1,
+        flexDirection: 'column',
+        marginBottom: 5,
     },
     galleryImage: { 
-        width: 75, 
-        height: 75,
+        width: 350, 
+        height: 350,
+        justifyContent: 'center',
+        alignItems: 'center',
+        alignSelf: 'center',
     }, 
     default: {
         flex: 1, 

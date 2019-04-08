@@ -1,5 +1,7 @@
 import React from 'react';
-import { View, ScrollView, Text, AsyncStorage, TouchableHighlight, Modal, Button } from 'react-native';
+import { View, ScrollView, Text, 
+    AsyncStorage, TouchableHighlight, 
+    Modal, Button, RefreshControl } from 'react-native';
 import { Video } from 'expo';
 
 import { styles } from '../styles/SettingsScreenStyles';
@@ -8,16 +10,30 @@ export default class SettingsScreen extends React.Component {
     constructor(props) {
         super(props);
     }
+    static navigationOptions = { 
+        title: 'Video Gallery',
+    };
 
     state = {
         videos: [],
         focusedScreen: false,
         toPlay: "default",
         modalVisible: false,
+        refreshing: false,
     };
 
     setModalVisible(visible) {
         this.setState({ modalVisible: visible });
+    }
+
+    _onRefresh = async() => {
+        console.log("INFO: refresh started!");
+        this.setState({ refreshing: true });
+        
+        this._fetchVideosAsync();
+        
+        this.setState({ refreshing: false });
+        console.log("INFO: refresh complete!");
     }
 
     render() {
@@ -31,7 +47,6 @@ export default class SettingsScreen extends React.Component {
                     {this.renderGallery()}
                     {this.renderModal(this.state.toPlay)}
                 </View>
-                
             );
         }
         else if (this.state.videos.length === 0 && focusedScreen.focusedScreen) {
@@ -64,19 +79,17 @@ export default class SettingsScreen extends React.Component {
                         source={{ uri: playThis }} 
                         style={styles.video}
                         rate={1.0}
-                        volume={0.0}
                         isMuted={true}
                         resizeMode="cover"
                         shouldPlay
-                        isLooping
+                        useNativeControls
                     />
                     <Button
                         title='Go Back'
                         onPress={() => {
                             this.setModalVisible(!this.state.modalVisible);
                         }}
-                        style={styles.button}
-                    />
+                        style={styles.button}/>
                 </View>
             </Modal>
         );
@@ -84,22 +97,26 @@ export default class SettingsScreen extends React.Component {
 
     renderGallery() {
         return(  
-            <ScrollView 
-                horizontal={true}
-                style={styles.galleryContainer}>
-
-                {this.state.videos.map(({ uri }) => (
+            <ScrollView
+                style={styles.galleryContainer}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={this.state.refreshing}
+                        onRefresh={this._onRefresh} />
+                }>
+                
+                {this.state.videos.map(({ timestamp, uri }) => (
                     <View style={styles.galleryImageContainer} key={uri}>
                         <TouchableHighlight
                             onPress={() => {
                                 this.setModalVisible(true);
                                 this.setState({ toPlay: uri });
+                                console.log('INFO: ' + timestamp);
                             }}>
                             <Video
                                 source={{ uri: uri }} 
                                 style={styles.galleryImage}
                                 rate={1.0}
-                                volume={0.0}
                                 isMuted={true}
                                 resizeMode="cover"
                                 shouldPlay
@@ -116,16 +133,15 @@ export default class SettingsScreen extends React.Component {
         return new Promise((resolve, reject) => {
             AsyncStorage.getAllKeys((err, keys) => {
                 let uris = [];
-                let counter = 0;
+                // let counter = 0;
                 AsyncStorage.multiGet(keys, (err, stores) => {
                     stores.map((result, i, store) => {
-                    let key = store[i][0];
-                    let value = store[i][1];
-                    uris.push({key: counter, uri: value});
-                    // console.log(value);
-                    counter++;
-                });
-                this.setState({videos:uris});
+                        let key = store[i][0];
+                        let value = store[i][1];
+                        uris.push({timestamp: key, uri: value});
+                        // counter++;
+                    });
+                    this.setState({videos:uris});
                 })
                 .catch(() => {
                     console.log("ERROR: couldn't get values");
@@ -139,9 +155,9 @@ export default class SettingsScreen extends React.Component {
 
     async componentDidMount() {
         this._fetchVideosAsync()
-            .then((resp) => {
-                console.log(resp);
-            });
+        .then((resp) => {
+            console.log(resp);
+        });
         let { navigation } = this.props;
         navigation.addListener('willFocus', () =>
             this.setState({ focusedScreen: true })

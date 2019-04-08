@@ -1,7 +1,9 @@
 import React from 'react';
-import { Text, View, Alert, TouchableHighlight, AsyncStorage } from 'react-native';
-import { Camera, Permissions, BackgroundFetch, TaskManager, Constants, Accelerometer, Gyroscope } from 'expo';
-
+import { Text, View, Alert, 
+    TouchableHighlight, AsyncStorage } from 'react-native';
+import { Camera, Permissions,
+    BackgroundFetch, TaskManager,
+    Constants, Accelerometer, Gyroscope } from 'expo';
 
 import { styles } from '../styles/HomeScreenStyles';
 
@@ -14,13 +16,14 @@ export default class HomeScreen extends React.Component {
 
     state = {
         hasCameraPermissions: null,
-        autoFocus: 'on',
-        ratio: '16:9',
-        type: Camera.Constants.Type.back,
         pressed: false,
         focusedScreen: false,
-        videos: [],
         counter: 0,
+        cameraConfig: {
+            autoFocus: 'on',
+            ratio: '16:9',
+            type: Camera.Constants.Type.back,
+        },
         recordingConfig: {
             quality: Camera.Constants.VideoQuality['480p'],
             maxDuration: 30,
@@ -39,7 +42,7 @@ export default class HomeScreen extends React.Component {
     }
 
     renderCamera() {
-        let { hasCameraPermissions, focusedScreen } = this.state;
+        let { hasCameraPermissions, focusedScreen, cameraConfig } = this.state;
         console.log('INFO: camera in focus? ' + focusedScreen);
 
         if (hasCameraPermissions === null || !focusedScreen) {
@@ -57,9 +60,9 @@ export default class HomeScreen extends React.Component {
                 <Camera 
                     ref={ref => { this.camera = ref; }} 
                     style={styles.cameraView}
-                    ratio={this.state.ratio}
-                    autoFocus={this.state.autoFocus}
-                    type={this.state.type}>
+                    ratio={cameraConfig.ratio}
+                    autoFocus={cameraConfig.autoFocus}
+                    type={cameraConfig.type}>
 
                     <View style={styles.recordRow}>
                         <TouchableHighlight 
@@ -93,17 +96,17 @@ export default class HomeScreen extends React.Component {
     }
 
     _saveVideo = async (data) => {
-        let newKey = 'video' + this.state.counter;
-        console.log(newKey);
+        let timestampKey = new Date();
+        console.log(timestampKey);
         try {
-            await AsyncStorage.setItem(newKey, data.uri)
+            await AsyncStorage.setItem(timestampKey, data.uri)
             .then(() => {
-                console.log("INFO: I saved the video! key: " + newKey);
+                console.log("INFO: I saved the video! key: " + timestampKey);
                 Alert.alert('Stopped Recording',
                     'Video has been saved.',
                     [{text: 'Okay' }],
                 );
-                this.state.counter = this.state.counter + 1;
+                this.state.counter += 1;
             });
         } catch (error) {
             console.log("ERROR: error saving data.");
