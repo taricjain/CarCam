@@ -24,20 +24,6 @@ HomeStack.navigationOptions = {
   ),
 };
 
-// const LinksStack = createStackNavigator({
-//   Links: LinksScreen,
-// });
-
-// LinksStack.navigationOptions = {
-//   tabBarLabel: 'Links',
-//   tabBarIcon: ({ focused }) => (
-//     <TabBarIcon
-//       focused={focused}
-//       name={Platform.OS === 'ios' ? 'ios-link' : 'md-link'}
-//     />
-//   ),
-// };
-
 const SettingsStack = createStackNavigator({
   Settings: SettingsScreen,
 });

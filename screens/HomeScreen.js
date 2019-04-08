@@ -1,129 +1,127 @@
 import React from 'react';
-import { 
-    Text, TouchableOpacity, View, StatusBar,
-    Alert, Vibration, CameraRoll, SafeAreaView,
-    TouchableHighlight, Platform,
-} from 'react-native';
-import { Camera, Permissions, Icon } from 'expo';
-import TimerMixin from 'react-timer-mixin';
+import { Text, View, Alert, TouchableHighlight, AsyncStorage } from 'react-native';
+import { Camera, Permissions } from 'expo';
+import { BackgroundFetch, TaskManager } from 'expo';
+
+
 import { styles } from '../styles/HomeScreenStyles';
-import Colors from '../constants/Colors';
+import SettingsScreen from './SettingsScreen';
 
 export default class HomeScreen extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
-    static navigationOptions = {
-        headerStyle: {
-            display: 'none',
-          },
-    };
+    constructor(props) { super(props); }
+    static navigationOptions = { headerStyle: { display: 'none' } };
 
     state = {
         hasCameraPermissions: null,
-        flash: 'off',
-        zoom: 0,
         autoFocus: 'on',
-        whiteBalance: 'auto',
         ratio: '16:9',
         type: Camera.Constants.Type.back,
-        isRecording: false,
         pressed: false,
+        focusedScreen: false,
+        videos: [],
+        counter: 0,
+        recordingConfig: {
+            quality: Camera.Constants.VideoQuality['480p'],
+            maxDuration: 30,
+            mute: true,
+        },
     };
 
     render() {
-        const { hasCameraPermissions } = this.state;
-        if (hasCameraPermissions === null) {
-            return <SafeAreaView style={styles.content}/>;
+        return (
+            <React.Fragment>
+                <View style={{ flex: 1 }}>
+                    {this.renderCamera()}
+                </View>
+            </React.Fragment>
+        );
+    }
+
+    renderCamera() {
+        let { hasCameraPermissions, focusedScreen } = this.state;
+        console.log('INFO: camera in focus? ' + focusedScreen);
+
+        if (hasCameraPermissions === null || !focusedScreen) {
+            return <View style={styles.content} />;
         } else if (hasCameraPermissions === false) {
             return (
-                <SafeAreaView style={styles.content}>
-                    <StatusBar translucent={true} barStyle="light-content" />
-                    <Text style={styles.permissionsText}>Please enable permissions to access the camera.</Text>
-                </SafeAreaView>
+                <View style={styles.content}>
+                    <Text style={styles.permissionsText}>
+                        Please enable permissions to access the camera.
+                    </Text>
+                </View>
             );
-        } else {
+        } else if (focusedScreen) {
             return (
-                <SafeAreaView style={styles.content}>
-                    <StatusBar translucent={true} barStyle="light-content" />
-                    <Camera 
-                        ref={ref => {this.camera = ref;}} 
-                        style={styles.cameraView}
-                        ratio={this.state.ratio}
-                        flash={this.state.flash}
-                        autoFocus={this.state.autoFocus}
-                        zoom={this.state.zoom}
-                        type={this.state.type}>
-                        <View style={styles.row}>
-                            <TouchableOpacity
-                                onPress={this.toggleCameraView}>
-                                <Icon.Ionicons
-                                    name={
-                                        Platform.OS === 'ios'
-                                          ? 'ios-reverse-camera'
-                                          : 'md-reverse-camera'
-                                      }
-                                    size={45}
-                                    color={Colors.noticeText}
-                                ></Icon.Ionicons>
-                            </TouchableOpacity>
-                        </View>
-                        <View style={styles.recordRow}>
-                            <TouchableHighlight 
-                                activeOpacity={1}
-                                style={styles.recordButtonRing}
-                                onPress={() => this.toggleRecording()}>
-                                <View style={this.state.pressed
-                                    ? styles.recordButtonInnerPressed
-                                    : styles.recordButtonInner}></View>
-                            </TouchableHighlight>
-                        </View>
-                    </Camera>
-                </SafeAreaView>
+                <Camera 
+                    ref={ref => { this.camera = ref; }} 
+                    style={styles.cameraView}
+                    ratio={this.state.ratio}
+                    autoFocus={this.state.autoFocus}
+                    type={this.state.type}>
+
+                    <View style={styles.recordRow}>
+                        <TouchableHighlight 
+                            activeOpacity={1}
+                            style={styles.recordButtonRing}
+                            onPress={() => this.toggleRecording()}>
+                            <View style={this.state.pressed
+                                ? styles.recordButtonInnerPressed
+                                : styles.recordButtonInner} />
+                        </TouchableHighlight>
+                    </View>
+                </Camera>
             );
         }
     }
 
-    toggleRecording() {
+    async toggleRecording() {
         if (this.state.pressed) {
             this.camera.stopRecording();
-            Alert.alert(
-                'Stopped Recording',
-                'Video has been saved to your camera roll.',
-                {cancelable: false},
-            );
         } else {
-            const recordingConfig = {
-                quality: Camera.Constants.VideoQuality['480p'],
-                maxDuration: 30,
-                mute: true,
-            };
-            Vibration.vibrate();
-            this.camera.recordAsync(recordingConfig).then(async data => {
-                Vibration.vibrate();
-                this.pushAfterFifteen(data);
-                //await CameraRoll.saveToCameraRoll(data.uri);
+            this.camera.recordAsync(this.state.recordingConfig)
+            .then(async data => {
+                this._saveVideo(data);
+                console.log('INFO: videos in camera = ' + this.state.counter);
+            })
+            .catch(function() {
+                console.log('ERROR: error while recording.');
             });
         }
         this.setState({ pressed: !this.state.pressed });
     }
 
-    pushAfterFifteen(data) {
-        CameraRoll.saveToCameraRoll(data.uri);
-    }
- 
-    toggleCameraView = () => {
-        this.setState({
-            type: this.state.type === Camera.Constants.Type.back
-            ? Camera.Constants.Type.front
-            : Camera.Constants.Type.back,
-        });
-    }
+    _saveVideo = async (data) => {
+        let newKey = 'video' + this.state.counter;
+        console.log(newKey);
+        try {
+            await AsyncStorage.setItem(newKey, data.uri)
+            .then(() => {
+                console.log("INFO: I saved the video! key: " + newKey);
+                Alert.alert('Stopped Recording',
+                    'Video has been saved.',
+                    [{text: 'Okay' }],
+                );
+                this.state.counter = this.state.counter + 1;
+            });
+        } catch (error) {
+            console.log("ERROR: error saving data.");
+        }
+    };
 
     async componentDidMount() {
-        const { status } = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL);
+        let { status } = await Permissions.askAsync(
+            Permissions.CAMERA, 
+            Permissions.CAMERA_ROLL,
+            Permissions.AUDIO_RECORDING);
         this.setState( { hasCameraPermissions: status === 'granted' });
-    }
 
+        let { navigation } = this.props;
+        navigation.addListener('willFocus', () =>
+            this.setState({ focusedScreen: true })
+        );
+        navigation.addListener('willBlur', () =>
+            this.setState({ focusedScreen: false }),
+        );
+    }
 }
