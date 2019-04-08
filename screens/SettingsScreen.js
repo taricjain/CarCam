@@ -46,17 +46,22 @@ export default class SettingsScreen extends React.Component {
                     {this.renderModal(this.state.toPlay)}
                 </View>
             );
-        }
-        else if (this.state.videos.length === 0 && focusedScreen.focusedScreen) {
+        } else if (this.state.videos.length === 0 && focusedScreen.focusedScreen) {
             return (
-                <View style={{flex: 1, alignItems: "center", justifyContent: "center"}}>
+                <View style={{flex:1, alignItems:"center", justifyContent:"center"}}>
+                    <ScrollView style={styles.galleryContainer}
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={this.state.refreshing}
+                                onRefresh={this._onRefresh} />
+                        }>
                     <Text style={{fontSize:20}}>Start Driving to Save Videos!</Text>
+                </ScrollView>
                 </View>
             );
-        }
-        else {
+        } else {
             return (
-                <View style={{flex: 1, alignItems: "center", justifyContent: "center"}}>
+                <View style={{flex:1, alignItems:"center", justifyContent:"center"}}>
                     <Text style={{fontSize:20}}>Start Driving to Save Videos!</Text>
                 </View>
             );
@@ -70,7 +75,7 @@ export default class SettingsScreen extends React.Component {
                 transparent={false}
                 visible={this.state.modalVisible}
                 onRequestClose={() => {
-                    console.log("INFO: Modal Closed.");
+                    console.log("INFO: modal closed.");
                 }}>
                 <View style={styles.videoContainer}>
                     <Video
