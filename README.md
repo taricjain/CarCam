@@ -13,6 +13,7 @@ storage within the app (with native playback features), and detecting if the use
 Link: https://exp.host/@taricjain/CarCam
 
 ## Clone the Project
+Run the following commands to get started!
 ```
 cd ~/
 git clone https://github.com/taricjain/CarCam.git
@@ -22,7 +23,7 @@ then
 cd ~/CarCam/
 npm install
 ```
-in the terminal to install dependencies.
+in terminal to install dependencies.
 
 After that, you can choose to run the app by typing
 ```
