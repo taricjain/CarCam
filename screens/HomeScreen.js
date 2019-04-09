@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, View, Alert,
     TouchableHighlight, AsyncStorage } from 'react-native';
-import { Camera, Permissions } from 'expo';
+import { Camera, Permissions, Location } from 'expo';
 import { styles } from '../styles/HomeScreenStyles';
 
 export default class HomeScreen extends React.Component {
@@ -16,6 +16,14 @@ export default class HomeScreen extends React.Component {
         focusedScreen: false,
         pressed: false,
         counter: 0,
+        prevLocation: {
+            latitude: 0,
+            longitude: 0,
+        },
+        currLocation: {
+            latitude: 0,
+            longitude: 0,
+        },
         cameraConfig: {
             type: Camera.Constants.Type.back,
             autoFocus: 'on',
@@ -26,6 +34,15 @@ export default class HomeScreen extends React.Component {
             maxDuration: 30,
             mute: true,
         },
+        watchPositionConfig: {
+            accuracy: Location.Accuracy.High,
+            timeInterval: 2000,
+            distanceInterval: 50,
+        },
+        currentPositionConfig: {
+            accuracy: Location.Accuracy.High,
+            maximumAge: 2000,
+        }
     };
 
     render() {
@@ -60,11 +77,13 @@ export default class HomeScreen extends React.Component {
                     autoFocus={cameraConfig.autoFocus}
                     type={cameraConfig.type}>
 
+                    {console.log(this.state.currLocation)}
+
                     <View style={styles.recordRow}>
                         <TouchableHighlight 
                             activeOpacity={1}
                             style={styles.recordButtonRing}
-                            onPress={() => this.toggleRecording()}>
+                            onPress={() => this._toggleRecording()}>
                             <View style={this.state.pressed
                                 ? styles.recordButtonInnerPressed
                                 : styles.recordButtonInner} />
@@ -75,7 +94,7 @@ export default class HomeScreen extends React.Component {
         }
     }
 
-    async toggleRecording() {
+    async _toggleRecording() {
         if (this.state.pressed) {
             this.camera.stopRecording();
         } else {
@@ -98,7 +117,8 @@ export default class HomeScreen extends React.Component {
             await AsyncStorage.setItem(timestampKey, data.uri)
             .then(() => {
                 console.log("INFO: I saved the video! key: " + timestampKey);
-                Alert.alert('Stopped Recording',
+                Alert.alert(
+                    'Stopped Recording',
                     'Video has been saved.',
                     [{text: 'Okay' }],
                 );
@@ -109,7 +129,36 @@ export default class HomeScreen extends React.Component {
         }
     };
 
+    locationChanged(location) {
+        this.setState({ prevLocation: this.state.currLocation });
+        locationUpdate = {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+            accuracy: location.coords.accuracy,
+            heading: location.coords.heading,
+            speed: location.coords.speed,
+            timestamp: location.timestamp,
+        };
+        this.setState({ currLocation: locationUpdate });
+    }
+    
+    async _speedChanges(currLocation, prevLocation) {
+        if ((prevLocation.speed - currLocation.speed) >= 6) {
+            Alert.alert(
+                'Uh Oh! Were you in an accident?',
+                'Are you safe?',
+                [{text: 'Yes' }, {text: 'No'}],
+            );
+        }
+    } 
+
     async componentDidMount() {
+        let { status } = await Permissions.askAsync(
+            Permissions.CAMERA, 
+            Permissions.LOCATION,
+            Permissions.AUDIO_RECORDING);
+        this.setState( { hasCameraPermissions: status === 'granted' } );
+
         let { navigation } = this.props;
         navigation.addListener('willFocus', () =>
             this.setState({ focusedScreen: true })
@@ -118,13 +167,17 @@ export default class HomeScreen extends React.Component {
             this.setState({ focusedScreen: false }),
         );
 
-        let { status } = await Permissions.askAsync(
-            Permissions.CAMERA, 
-            Permissions.CAMERA_ROLL,
-            Permissions.AUDIO_RECORDING);
-        this.setState( { hasCameraPermissions: status === 'granted' } );
-
         let count = await AsyncStorage.getAllKeys();
         this.setState( { counter: count.length } );
+        
+        Location.getCurrentPositionAsync(this.state.currentPositionConfig)
+        .then((location) => {
+            Location.watchPositionAsync(
+                this.state.watchPositionConfig,
+                this.locationChanged(location));
+        })
+        .catch((err) => {
+            console.log("ERROR: location error. " + err);
+        });
     }
 }
