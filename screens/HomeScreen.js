@@ -155,8 +155,7 @@ export default class HomeScreen extends React.Component {
     async componentDidMount() {
         let { status } = await Permissions.askAsync(
             Permissions.CAMERA, 
-            Permissions.LOCATION,
-            Permissions.AUDIO_RECORDING);
+            Permissions.LOCATION);
         this.setState( { hasCameraPermissions: status === 'granted' } );
 
         let { navigation } = this.props;

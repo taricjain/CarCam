@@ -3,9 +3,9 @@ import { View, ScrollView, Text,
     AsyncStorage, TouchableHighlight, 
     Modal, RefreshControl } from 'react-native';
 import { Video } from 'expo';
-import { styles } from '../styles/SettingsScreenStyles';
+import { styles } from '../styles/GallaryScreenStyles';
 
-export default class SettingsScreen extends React.Component {
+export default class GallaryScreen extends React.Component {
     constructor(props) {
         super(props);
     }
@@ -48,21 +48,21 @@ export default class SettingsScreen extends React.Component {
             );
         } else if (this.state.videos.length === 0 && focusedScreen.focusedScreen) {
             return (
-                <View style={{flex:1, alignItems:"center", justifyContent:"center"}}>
+                <View style={styles.centerContent}>
                     <ScrollView style={styles.galleryContainer}
                         refreshControl={
                             <RefreshControl
                                 refreshing={this.state.refreshing}
                                 onRefresh={this._onRefresh} />
                         }>
-                    <Text style={{fontSize:20}}>Start Driving to Save Videos!</Text>
+                    <Text style={styles.introText}>Start driving to save videos!</Text>
                 </ScrollView>
                 </View>
             );
         } else {
             return (
-                <View style={{flex:1, alignItems:"center", justifyContent:"center"}}>
-                    <Text style={{fontSize:20}}>Start Driving to Save Videos!</Text>
+                <View style={styles.centerContent}>
+                    <Text style={styles.introText}>Start driving to save videos!</Text>
                 </View>
             );
         }
@@ -99,6 +99,11 @@ export default class SettingsScreen extends React.Component {
         );
     }
 
+    formatDate(timestamp) {
+        let date = new Date(timestamp);
+        return date.toLocaleString();
+    }
+
     renderGallery() {
         return(  
             <ScrollView
@@ -111,7 +116,9 @@ export default class SettingsScreen extends React.Component {
                 
                 {this.state.videos.map(({ timestamp, uri }) => (
                     <View style={styles.galleryImageContainer} key={uri}>
+                        <Text style={styles.videoDate}>{this.formatDate(timestamp)}</Text>
                         <TouchableHighlight
+                            style={styles.galleryImageParent}
                             onPress={() => {
                                 this.setModalVisible(true);
                                 this.setState({ toPlay: uri });
@@ -119,10 +126,10 @@ export default class SettingsScreen extends React.Component {
                             }}>
                             <Video
                                 source={{ uri: uri }} 
-                                style={styles.galleryImage}
                                 rate={1.0}
                                 isMuted={true}
                                 resizeMode="cover"
+                                style={styles.galleryImage}
                                 />
                         </TouchableHighlight>
                     </View>

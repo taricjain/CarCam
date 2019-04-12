@@ -17,16 +17,24 @@ export const styles = StyleSheet.create({
     galleryImageContainer: { 
         flex: 1,
         flexDirection: 'column',
-        marginBottom: 5,
+        marginBottom: 15,
+        elevation:4,
+        shadowOffset: { width: 0, height: 1 },
+        shadowColor: '#000',
+        shadowOpacity: 0.3,
     },
-    galleryImage: { 
-        width: 350, 
-        height: 350,
+    galleryImageParent: {
         justifyContent: 'center',
         alignItems: 'center',
         alignSelf: 'center',
+        borderRadius: 10,
+        overflow: 'hidden',
+    },
+    galleryImage: { 
+        width: 350, 
+        height: 350
     }, 
-    default: {
+    centerContent: {
         flex: 1, 
         alignItems: 'center', 
         justifyContent: 'center',
@@ -61,5 +69,18 @@ export const styles = StyleSheet.create({
         textAlign: 'center',
         fontSize: 20,
         color: '#fff',
+    },
+    introText: {
+        fontSize: 20,
+        marginTop: 25
+    },
+    videoDate: {
+        fontSize: 16,
+        flex: 1,
+        backgroundColor: '#c8c8c8',
+        paddingTop: 5,
+        paddingBottom: 5,
+        paddingLeft: 10,
+        marginBottom: 15
     }
 });
