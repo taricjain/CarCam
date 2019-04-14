@@ -1,7 +1,9 @@
 import React from 'react';
-import { View, ScrollView, Text, 
+import { 
+    View, ScrollView, Text, 
     AsyncStorage, TouchableHighlight, 
-    Modal, RefreshControl } from 'react-native';
+    Modal, RefreshControl, SafeAreaView
+} from 'react-native';
 import { Video } from 'expo';
 import { styles } from '../styles/GallaryScreenStyles';
 
@@ -77,24 +79,23 @@ export default class GallaryScreen extends React.Component {
                 onRequestClose={() => {
                     console.log("INFO: modal closed.");
                 }}>
-                <View style={styles.videoContainer}>
-                    <Video
-                        source={{ uri: playThis }} 
-                        style={styles.video}
-                        rate={1.0}
-                        isMuted={true}
-                        resizeMode="cover"
-                        shouldPlay
-                        useNativeControls
-                    />
+                <SafeAreaView style={styles.videoContainer}>
                     <TouchableHighlight
                         onPress={() => {
                             this.setModalVisible(!this.state.modalVisible);
                         }}
                         style={styles.button}>
-                            <Text style={styles.buttonText}>Go Back</Text>
+                        <Text style={styles.buttonText}>Exit</Text>
                     </TouchableHighlight>
-                </View>
+                    <Video
+                        source={{ uri: playThis }} 
+                        style={styles.video}
+                        rate={1.0}
+                        isMuted={true}
+                        shouldPlay
+                        useNativeControls
+                    />
+                </SafeAreaView>
             </Modal>
         );
     }
