@@ -49,6 +49,8 @@ export const styles = StyleSheet.create({
         fontSize: 18,
         color: 'white',
         fontWeight: 'bold',
+        flex: 1,
+        textAlign: 'center',
     },
     row: {
         flexDirection: 'row',

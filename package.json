@@ -1,28 +1,24 @@
 {
-  "main": "node_modules/expo/AppEntry.js",
-  "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "eject": "expo eject",
-    "test": "node ./node_modules/jest/bin/jest.js --watchAll"
-  },
-  "jest": {
-    "preset": "jest-expo"
-  },
-  "dependencies": {
-    "@expo/samples": "2.1.1",
-    "create-react-context": "^0.2.3",
-    "expo": "^32.0.0",
-    "react": "16.5.0",
-    "react-native": "https://github.com/expo/react-native/archive/sdk-32.0.0.tar.gz",
-    "react-navigation": "^3.6.1",
-    "react-timer-mixin": "^0.13.4"
-  },
-  "devDependencies": {
-    "@types/react-native": "^0.57.42",
-    "babel-preset-expo": "^5.1.1",
-    "jest-expo": "22.0.0"
-  },
-  "private": true
+   "main": "node_modules/expo/AppEntry.js",
+   "scripts": {
+      "start": "expo start",
+      "android": "expo start --android",
+      "ios": "expo start --ios",
+      "eject": "expo eject",
+      "test": "node ./node_modules/jest/bin/jest.js --watchAll"
+   },
+   "dependencies": {
+      "@expo/samples": "2.1.1",
+      "create-react-context": "^0.2.3",
+      "expo": "^32.0.0",
+      "moment": "^2.24.0",
+      "react": "16.5.0",
+      "react-native": "https://github.com/expo/react-native/archive/sdk-32.0.0.tar.gz",
+      "react-navigation": "^3.6.1"
+   },
+   "devDependencies": {
+      "@types/react-native": "^0.57.42",
+      "babel-preset-expo": "^5.1.1"
+   },
+   "private": true
 }

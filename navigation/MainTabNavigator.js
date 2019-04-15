@@ -4,7 +4,7 @@ import { createStackNavigator, createBottomTabNavigator } from 'react-navigation
 
 import TabBarIcon from '../components/TabBarIcon';
 import HomeScreen from '../screens/HomeScreen';
-import GallaryScreen from '../screens/GallaryScreen';
+import GalleryScreen from '../screens/GalleryScreen';
 
 const HomeStack = createStackNavigator({
   Home: HomeScreen,
@@ -25,7 +25,7 @@ HomeStack.navigationOptions = {
 };
 
 const GalleryStack = createStackNavigator({
-  Gallery: GallaryScreen,
+  Gallery: GalleryScreen,
 });
 
 GalleryStack.navigationOptions = {
