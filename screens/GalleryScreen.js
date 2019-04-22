@@ -128,7 +128,6 @@ export default class GalleryScreen extends React.Component {
                   refreshing={this.state.refreshing}
                   onRefresh={this._onRefresh} />
             }>
-            
             {this.state.videos.map( ({ timestamp, value }, index) => (
                this.renderByDay(timestamp, value, index)
             ))}
@@ -192,8 +191,12 @@ export default class GalleryScreen extends React.Component {
                   }
                   uris.push({ timestamp: key, value: val });
                });
-               this.setState({ videos: uris });
-               this.setState({ groupDate: Moment(Moment(this.state.videos[0].timestamp).format("YYYY-MM-DD"))});
+               this.setState({ videos: uris.reverse() });
+               try {
+                  this.setState({ groupDate: Moment(Moment(this.state.videos[0].timestamp).format("YYYY-MM-DD"))});
+               } catch(e) {
+                  this.setState({ groupDate: new Date() });
+               }
             })
             .catch(() => {
                console.log("ERROR: couldn't get values");

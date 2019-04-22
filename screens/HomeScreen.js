@@ -1,14 +1,14 @@
 import React from 'react';
-import { Camera, Permissions, Location } from 'expo';
+import { Camera, Permissions, Accelerometer } from 'expo';
 import { Text, View, Alert, TouchableHighlight, 
-   AsyncStorage } from 'react-native';
+   AsyncStorage, Vibration } from 'react-native';
 
 import { styles } from '../styles/HomeScreenStyles';
 
 export default class HomeScreen extends React.Component {
    constructor(props) { 
       super(props);
-      this.render = this.render.bind(this);
+      this._saveVideo = this._saveVideo.bind(this);
    }
 
    static navigationOptions = { 
@@ -20,25 +20,10 @@ export default class HomeScreen extends React.Component {
    state = {
       hasCameraPermissions: null,
       focusedScreen: false,
-      pressed: false,
+      isRecording: false,
       counter: 0,
       flag: null,
-      prevLocation: {
-         latitude: 0,
-         longitude: 0,
-         accuracy: 0,
-         heading: 0,
-         speed: 0,
-         timestamp: 0
-      },
-      currLocation: {
-         latitude: 0,
-         longitude: 0,
-         accuracy: 0,
-         heading: 0,
-         speed: 0,
-         timestamp: 0
-      },
+      interval: null,
       cameraConfig: {
          type: Camera.Constants.Type.back,
          autoFocus: 'on',
@@ -46,12 +31,8 @@ export default class HomeScreen extends React.Component {
       },
       recordingConfig: {
          quality: Camera.Constants.VideoQuality['480p'],
-         maxDuration: 30,
+         maxDuration: 60,
          mute: true,
-      },
-      currentPositionConfig: {
-         accuracy: Location.Accuracy.High,
-         maximumAge: 2000,
       }
    };
 
@@ -67,7 +48,8 @@ export default class HomeScreen extends React.Component {
       const { 
          hasCameraPermissions, 
          focusedScreen, 
-         cameraConfig } = this.state;
+         cameraConfig, isRecording } = this.state;
+         
       if (hasCameraPermissions === null || !focusedScreen) {
          return <View style={styles.content} />;
       } else if (hasCameraPermissions === false) {
@@ -79,7 +61,7 @@ export default class HomeScreen extends React.Component {
             </View>
          );
       } else if (focusedScreen) {
-         this._watchPosition();
+         // this._watchPosition();
          return (
             <Camera 
                ref={(ref) => this.camera = ref } 
@@ -87,18 +69,17 @@ export default class HomeScreen extends React.Component {
                ratio={cameraConfig.ratio}
                autoFocus={cameraConfig.autoFocus}
                type={cameraConfig.type}>
-               
-               <Text style={styles.text}>
-                  {this.state.currLocation.speed}
-               </Text>
 
                <View style={styles.recordRow}>
                   <TouchableHighlight 
                      activeOpacity={1}
                      style={styles.recordButtonRing}
-                     onPress={() => this._toggleRecording()}>
+                     onPress={() => { 
+                        this._toggleRecording()
+                        this.setState({ isRecording: !isRecording })
+                     }}>
                      
-                     <View style={this.state.pressed
+                     <View style={this.state.isRecording
                         ? styles.recordButtonInnerPressed
                         : styles.recordButtonInner} />
                   </TouchableHighlight>
@@ -108,94 +89,70 @@ export default class HomeScreen extends React.Component {
       }
    }
 
-   async _toggleRecording() {
-      if (this.state.pressed) {
-         clearInterval();
-         this.camera.stopRecording();
-      } else if (!this.state.pressed){
-         this._startRecording();
-         setInterval(async() => {
-            console.log('started')
-            await this._startRecording();
-            console.log('another');
-         }, 30000);
-      }
-      this.setState({ pressed: !this.state.pressed });
+   _toggleRecording() {
+      // if we are recording then stop because the button was pressed
+      this.state.isRecording 
+         ? this._stopRecording()
+         : this._startRecording();
    }
 
-   async _startRecording() {
-      this.camera.recordAsync(this.state.recordingConfig)
-      .then(async data => {
-         this._saveVideo(data);
-         console.log('INFO: videos = ' + this.state.counter);
-      })
-      .catch(function() {
-         console.log('ERROR: error while recording.');
-      });
+   _stopRecording() {
+      this.setState({ isRecording: false });
       this.camera.stopRecording();
+      console.log('DEBUG: stopped recording in stop')
    }
 
-   _saveVideo = async (data) => {
-      let key = new Date();
-      const value = JSON.stringify({ 
-            uri: data.uri, 
-            flag: this.state.flag 
-         });
+   _startRecording() {
       try {
-         await AsyncStorage.setItem(key, value)
+         this.setState({ isRecording: true });
+         this.camera.recordAsync(this.state.recordingConfig)
+         .then((data) => {
+            this._saveVideo(data);
+            console.log('INFO: videos = ' + this.state.counter);
+         });
+      } catch(error) {
+         console.log('ERROR: error with recordAsync(): ' + error);
+      }
+   }
+
+   _saveVideo = (data) => {
+      let key = new Date();
+      const value = JSON.stringify({
+         uri: data.uri,
+         flag: this.state.flag 
+      });
+      try {
+         AsyncStorage.setItem(key, value)
          .then(() => {
             Alert.alert(
                'Recording stopped',
                'Video has been saved.',
-               [{ text: 'Okay' }],
+               [
+                  { text: 'Okay' }, 
+                  { text: 'Go To Gallery', 
+                     onPress: () => {
+                        this.props.navigation.navigate('Gallery')
+                     }
+                  }
+               ],
             );
-            this.state.counter += 1;
+            Vibration.vibrate();
+            console.log('DEBUG: video saved');
+            this.state.counter++;
+         })
+         .catch((err) => {
+            console.log('err while saving: ' + err);
          });
       } catch (error) {
          console.log("ERROR: error saving data.");
       }
    };
 
-   async _watchPosition() {
-      Location.watchPositionAsync( 
-         { timeInterval: 2000, distanceInterval: 10,
-         accuracy: Location.Accuracy.High },
-         this.locationChanged);
-      this._speedChanges(this.state.currLocation, 
-         this.state.prevLocation);
-   }
-
-   locationChanged = (location) => {
-      this.setState({ prevLocation: this.state.currLocation });
-      locationUpdate = {
-         latitude: location.coords.latitude,
-         longitude: location.coords.longitude,
-         accuracy: location.coords.accuracy,
-         heading: location.coords.heading,
-         speed: location.coords.speed,
-         timestamp: location.timestamp,
-      };
-      this.setState({ currLocation: locationUpdate });
-   }
-   
-   async _speedChanges(currLocation, prevLocation) {
-      if ((prevLocation.speed - currLocation.speed) >= 2.0) {
-         Alert.alert(
-            'Uh Oh! Looks like you may have been in an accident.',
-            'Are you safe?',
-            [
-               { text: 'Yes', onPress: () => { this.setState({ flag: false }) }}, 
-               { text: 'No', onPress: () => { this.setState({ flag: true }) }}
-            ],
-         );
-      }
-   }
-
    async componentDidMount() {
       let { status } = await Permissions.askAsync(
          Permissions.AUDIO_RECORDING,
-         Permissions.CAMERA,
-         Permissions.LOCATION);
+         Permissions.CAMERA);
+   
       this.setState({ hasCameraPermissions: status === 'granted' });
       
       let { navigation } = this.props;
@@ -208,7 +165,6 @@ export default class HomeScreen extends React.Component {
 
       let count = await AsyncStorage.getAllKeys();
       this.setState({ counter: count.length });
-
-      this._watchPosition();
+      // this._watchPosition();
    }
 }

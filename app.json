@@ -20,7 +20,7 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false
     },
     "description": "This app aims to become a cheap alternative to an average driver's dashcam needs.",
     "githubUrl": "https://github.com/taricjain/CarCam"
